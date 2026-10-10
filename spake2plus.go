@@ -10,7 +10,6 @@
 package spake2plus
 
 import (
-	"bytes"
 	"crypto/hkdf"
 	"crypto/hmac"
 	"crypto/rand"
@@ -137,6 +136,7 @@ func (g *group) checkScalar(name string, k []byte) error {
 func (g *group) randomScalar() []byte {
 	buf := make([]byte, g.scalarLen+8) // 64 extra bits: bias below 2^-64 (RFC 9383 §3.2)
 	rand.Read(buf)
+	defer clear(buf) // buf determines the scalar, so it is as secret
 	return g.reduce(buf)
 }
 
@@ -282,7 +282,7 @@ func (p *Prover) start(x []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.x, p.started = bytes.Clone(x), true // own copy: Finish wipes it
+	p.x, p.started = x, true // takes ownership of x: Finish wipes it
 	return p.shareP, nil
 }
 
@@ -354,8 +354,7 @@ func (v *Verifier) exchange(shareP, y []byte) ([]byte, []byte, error) {
 	if v.exchanged {
 		return nil, nil, errors.New("spake2plus: Exchange called twice")
 	}
-	y = bytes.Clone(y) // own copy: wiped on return
-	defer clear(y)
+	defer clear(y) // takes ownership of y: wiped on return
 	g := v.s.g
 	yP, err := g.base(y)
 	if err != nil {

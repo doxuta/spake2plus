@@ -110,7 +110,9 @@ Five deliberate breakages (big-endian transcript lengths, `Y + w0·N` instead of
 - No cofactor handling beyond `h = 1`, which is correct for the three NIST curves and nothing else.
 - No Matter or Tapo framing. Matter's PASE adds its own context hash, PBKDF parameters and session-key derivation; Tapo adds HTTP
   and AES-128-CCM. Both are layers above this package, and nothing here has been tested against a Matter or Tapo device.
-- Scalars passed in are validated for length and range; they are not wiped on the caller's side. `x` and `y` are wiped after use.
+- Scalars passed in are validated for length and range; they are not wiped on the caller's side. `x` and `y` and the random
+  bytes they are reduced from are wiped after use, but the `math/big` reduction leaves unwiped copies on the heap, and `K_main`
+  and the confirmation keys are not wiped either.
 
 ## Prior art and credits
 

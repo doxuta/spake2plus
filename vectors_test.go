@@ -132,7 +132,7 @@ func TestRFC9383Vectors(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			shareP, err := p.start(v["x"])
+			shareP, err := p.start(bytes.Clone(v["x"])) // start takes ownership and wipes it
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -142,7 +142,7 @@ func TestRFC9383Vectors(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			shareV, confirmV, err := vf.exchange(v["shareP"], v["y"])
+			shareV, confirmV, err := vf.exchange(v["shareP"], bytes.Clone(v["y"]))
 			if err != nil {
 				t.Fatal(err)
 			}
