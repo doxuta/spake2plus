@@ -354,7 +354,6 @@ func (v *Verifier) exchange(shareP, y []byte) ([]byte, []byte, error) {
 	if v.exchanged {
 		return nil, nil, errors.New("spake2plus: Exchange called twice")
 	}
-	v.exchanged = true
 	y = bytes.Clone(y) // own copy: wiped on return
 	defer clear(y)
 	g := v.s.g
@@ -389,7 +388,9 @@ func (v *Verifier) exchange(shareP, y []byte) ([]byte, []byte, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	v.confirmP, v.shared = v.s.mac(k.confirmP, v.shareV), k.shared
+	// Only a completed exchange may be followed by Finish: a rejected shareP
+	// leaves no expected confirmP to compare against.
+	v.confirmP, v.shared, v.exchanged = v.s.mac(k.confirmP, v.shareV), k.shared, true
 	return v.shareV, v.s.mac(k.confirmV, shareP), nil
 }
 
